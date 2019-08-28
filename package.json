@@ -7,9 +7,40 @@
   "author": "support@pusher.com",
   "license": "MIT",
   "scripts": {
-    "test": "jest ./tests"
+    "test": "jest ./tests",
+    "lint": "eslint src tests",
+    "format": "prettier --write src/**/*.js tests/**/*.js"
+  },
+  "prettier": {
+    "semi": false,
+    "trailingComma": "all"
+  },
+  "eslintConfig": {
+    "extends": [
+      "prettier",
+      "eslint:recommended"
+    ],
+    "plugins": [
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "error"
+    },
+    "parserOptions": {
+      "sourceType": "module",
+      "ecmaVersion": 2018
+    },
+    "env": {
+      "browser": true,
+      "jest": true,
+      "es6": true
+    }
   },
   "devDependencies": {
-    "jest": "^24.9.0"
+    "eslint": "^6.2.2",
+    "eslint-config-prettier": "^3.1.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "jest": "^24.9.0",
+    "prettier": "^1.18.2"
   }
 }
