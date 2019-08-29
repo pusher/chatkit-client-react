@@ -4,8 +4,8 @@
 [![Read the docs](https://img.shields.io/badge/read_the-docs-92A8D1.svg)](https://docs.pusher.com/chatkit/reference/react)
 [![Twitter](https://img.shields.io/badge/twitter-@Pusher-blue.svg?style=flat)](http://twitter.com/Pusher)
 [![GitHub license](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://github.com/pusher/chatkit-client-react/blob/master/LICENSE.md)
-[![npm version](https://badge.fury.io/js/%40pusher%2Fchatkit-client.svg)](https://badge.fury.io/js/%40pusher%2Fchatkit-client-react)
-[![Build Status](https://travis-ci.org/pusher/chatkit-client-js.svg?branch=master)](https://travis-ci.org/pusher/chatkit-client-react)
+[![npm version](https://badge.fury.io/js/%40pusher%2Fchatkit-client-react.svg)](https://badge.fury.io/js/%40pusher%2Fchatkit-client-react)
+[![Build Status](https://travis-ci.org/pusher/chatkit-client-react.svg?branch=master)](https://travis-ci.org/pusher/chatkit-client-react)
 
 The React client for Pusher Chatkit. If you aren't already here, you can find the source [on Github](https://github.com/pusher/chatkit-client-react).
 
