@@ -1,4 +1,4 @@
-# Chatkit React SDK
+# Pusher Chatkit React SDK
 **THIS SDK IS A WORK IN PROGRESS**
 
 [![Read the docs](https://img.shields.io/badge/read_the-docs-92A8D1.svg)](https://docs.pusher.com/chatkit/reference/react)
