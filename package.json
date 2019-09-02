@@ -19,7 +19,8 @@
   "eslintConfig": {
     "extends": [
       "prettier",
-      "eslint:recommended"
+      "eslint:recommended",
+      "plugin:react/recommended"
     ],
     "plugins": [
       "prettier"
@@ -42,16 +43,19 @@
     "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "@babel/preset-react": "^7.0.0",
+    "babel-eslint": "^10.0.3",
     "babel-jest": "^24.9.0",
-    "eslint": "^6.2.2",
+    "eslint": "^6.3.0",
     "eslint-config-prettier": "^3.1.0",
     "eslint-plugin-prettier": "^3.0.0",
+    "eslint-plugin-react": "^7.14.3",
     "jest": "^24.9.0",
     "prettier": "^1.18.2",
     "react-test-renderer": "^16.9.0"
   },
   "dependencies": {
     "@pusher/chatkit-client": "^1.12.1",
+    "prop-types": "^15.7.2",
     "react": "^16.9.0"
   }
 }

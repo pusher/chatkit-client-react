@@ -1,4 +1,5 @@
 import Chatkit from "@pusher/chatkit-client"
+import PropTypes from "prop-types"
 import React from "react"
 import TestRenderer from "react-test-renderer"
 
@@ -20,6 +21,9 @@ describe("withChatkit higher-order-component", () => {
   const TestComponent = props => {
     props.callback(props)
     return <div>Hello World</div>
+  }
+  TestComponent.propTypes = {
+    callback: PropTypes.func.isRequired,
   }
 
   it("should inject a properly configured ChatManager", () => {

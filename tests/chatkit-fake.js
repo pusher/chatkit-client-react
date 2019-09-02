@@ -1,5 +1,5 @@
 export class ChatManager {
-  constructor({ instanceLocator, tokenProvider, userId, ...options } = {}) {
+  constructor({ instanceLocator, tokenProvider, userId } = {}) {
     if (typeof instanceLocator !== "string") {
       throw new Error(
         `instance locator must be a string, got ${instanceLocator}`,

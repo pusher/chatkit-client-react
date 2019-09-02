@@ -1,4 +1,5 @@
 import chatkit from "@pusher/chatkit-client"
+import PropTypes from "prop-types"
 import React from "react"
 
 /**
@@ -49,6 +50,13 @@ export class ChatkitProvider extends React.Component {
       </ChatkitContext.Provider>
     )
   }
+}
+
+ChatkitProvider.propTypes = {
+  instanceLocator: PropTypes.string.isRequired,
+  tokenProvider: PropTypes.object.isRequired,
+  userId: PropTypes.string.isRequired,
+  children: PropTypes.any.isRequired,
 }
 
 /**
