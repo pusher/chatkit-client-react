@@ -31,6 +31,7 @@ export class ChatkitProvider extends React.Component {
       chatkit: {
         chatManager: null,
         currentUser: null,
+        isLoading: true,
       },
     }
   }
@@ -45,7 +46,9 @@ export class ChatkitProvider extends React.Component {
     chatManager
       .connect()
       .then(currentUser => {
-        this.setState({ chatkit: { chatManager, currentUser } })
+        this.setState({
+          chatkit: { chatManager, currentUser, isLoading: false },
+        })
       })
       .catch(error => {
         // TODO: Error logging?

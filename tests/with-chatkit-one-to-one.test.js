@@ -83,6 +83,37 @@ describe("withChatkitOneToOne higher-order-component", () => {
     })
   })
 
+  it("should inject isLoading and update appropriately", () => {
+    const WrappedComponent = core.withChatkitOneToOne(TestComponent)
+
+    let firstValue = null
+    return new Promise(resolve => {
+      const page = (
+        <core.ChatkitProvider
+          instanceLocator={instanceLocator}
+          tokenProvider={tokenProvider}
+          userId={userId}
+        >
+          <WrappedComponent
+            callback={props => {
+              if (firstValue === null) {
+                firstValue = props.chatkit.isLoading
+              }
+              if (!props.chatkit.isLoading) {
+                resolve(props.chatkit.isLoading)
+              }
+            }}
+          />
+        </core.ChatkitProvider>
+      )
+      const renderer = TestRenderer.create(page)
+      renderer.toJSON()
+    }).then(value => {
+      expect(firstValue).toBe(true)
+      expect(value).toBe(false)
+    })
+  })
+
   it("should have a readable display name", () => {
     const WrappedComponent = core.withChatkitOneToOne(TestComponent)
     expect(WrappedComponent.displayName).toBe(
