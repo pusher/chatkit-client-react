@@ -2,13 +2,14 @@
   "name": "@pusher/chatkit-client-react",
   "version": "0.1.0",
   "description": "React SDK for Pusher Chatkit",
-  "main": "dist/web/chatkit-react.js",
+  "main": "dist/core.js",
   "repository": "git@github.com:pusher/chatkit-client-react.git",
   "author": "support@pusher.com",
   "license": "MIT",
   "scripts": {
     "test": "jest ./tests",
     "lint": "eslint src tests",
+    "build": "babel src --out-dir dist --copy-files",
     "format": "prettier --write src/**/*.js tests/**/*.js"
   },
   "prettier": {
@@ -37,6 +38,8 @@
     }
   },
   "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "@babel/preset-react": "^7.0.0",
     "babel-jest": "^24.9.0",
