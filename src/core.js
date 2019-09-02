@@ -82,8 +82,36 @@ export const withChatkit = WrappedComponent => {
   return WithChatkit
 }
 
+/**
+ * Wraps the given component and injects everything needed to create
+ * one-to-one chat experinces under props.chatkit:
+ * <pre><code>
+ *    // Base Chatkit SDK
+ *    props.chatkit.currentUser // Reference to the CurrentUser object
+ *    props.chatkit.chatManager // Reference to the ChatManager object
+ *    // One-to-one chat data
+ *    TODO
+ * </code></pre>
+ * @params{React.Component} WrappedComponent - Custom React component you would
+ *      like to inject the Chatkit data into
+ * @return{React.Component} A wrapped version of your component with the Chatkit
+ *      SDK injected under props.chatkit
+ */
+export const withChatkitOneToOne = WrappedComponent => {
+  class WithChatkitOneToOne extends React.Component {
+    render() {
+      return <WrappedComponent chatkit={this.context.chatkit} {...this.props} />
+    }
+  }
+  WithChatkitOneToOne.contextType = ChatkitContext
+  WithChatkitOneToOne.displayName = `WithChatkitOneToOne(${getDisplayName(
+    WrappedComponent,
+  )})`
+  return WithChatkitOneToOne
+}
+
 const getDisplayName = WrappedComponent => {
   return WrappedComponent.displayName || WrappedComponent.name || "Component"
 }
 
-export default { ChatkitProvider, withChatkit }
+export default { ChatkitProvider, withChatkit, withChatkitOneToOne }
