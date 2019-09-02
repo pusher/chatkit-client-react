@@ -82,4 +82,34 @@ describe("withChatkit higher-order-component", () => {
       expect(value.userId).toBe(userId)
     })
   })
+
+  it("should have a readable display name", () => {
+    const WrappedComponent = core.withChatkit(TestComponent)
+    expect(WrappedComponent.displayName).toBe("WithChatkit(TestComponent)")
+  })
+
+  it("should forward props to nested component", () => {
+    const TestComponentWithProps = props => {
+      return <div>{props.text}</div>
+    }
+    TestComponentWithProps.propTypes = {
+      text: PropTypes.string,
+    }
+    const WrappedComponent = core.withChatkit(TestComponentWithProps)
+
+    const page = (
+      <core.ChatkitProvider
+        instanceLocator={instanceLocator}
+        tokenProvider={tokenProvider}
+        userId={userId}
+      >
+        <WrappedComponent text={"some_value"} />
+      </core.ChatkitProvider>
+    )
+
+    const renderer = TestRenderer.create(page)
+    const result = renderer.toJSON()
+
+    expect(result.children).toEqual(["some_value"])
+  })
 })
