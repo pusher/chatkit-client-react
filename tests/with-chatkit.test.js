@@ -79,7 +79,7 @@ describe("withChatkit higher-order-component", () => {
       renderer.toJSON()
     }).then(value => {
       expect(value).toBeInstanceOf(Chatkit.CurrentUser)
-      expect(value.userId).toBe(userId)
+      expect(value.id).toBe(userId)
     })
   })
 
@@ -100,7 +100,10 @@ describe("withChatkit higher-order-component", () => {
                 firstValue = props.chatkit.isLoading
               }
               if (!props.chatkit.isLoading) {
-                resolve(props.chatkit.isLoading)
+                resolve({
+                  isLoading: props.chatkit.isLoading,
+                  currentUser: props.chatkit.currentUser,
+                })
               }
             }}
           />
@@ -108,9 +111,10 @@ describe("withChatkit higher-order-component", () => {
       )
       const renderer = TestRenderer.create(page)
       renderer.toJSON()
-    }).then(value => {
+    }).then(({ isLoading, currentUser }) => {
       expect(firstValue).toBe(true)
-      expect(value).toBe(false)
+      expect(isLoading).toBe(false)
+      expect(currentUser).toBeInstanceOf(Chatkit.CurrentUser)
     })
   })
 

@@ -33,7 +33,14 @@ export class ChatkitProvider extends React.Component {
         currentUser: null,
         isLoading: true,
       },
+      onLoadListeners: [],
     }
+  }
+
+  addOnLoadListener(listener) {
+    this.setState(state => ({
+      onLoadListeners: [listener, ...state.onLoadListeners],
+    }))
   }
 
   componentDidMount() {
@@ -46,9 +53,12 @@ export class ChatkitProvider extends React.Component {
     chatManager
       .connect()
       .then(currentUser => {
-        this.setState({
-          chatkit: { chatManager, currentUser, isLoading: false },
-        })
+        this.setState(
+          {
+            chatkit: { chatManager, currentUser, isLoading: false },
+          },
+          () => this.state.onLoadListeners.forEach(l => l()),
+        )
       })
       .catch(error => {
         // TODO: Error logging?
@@ -58,7 +68,12 @@ export class ChatkitProvider extends React.Component {
 
   render() {
     return (
-      <ChatkitContext.Provider value={this.state}>
+      <ChatkitContext.Provider
+        value={{
+          addOnLoadListener: l => this.addOnLoadListener(l),
+          ...this.state,
+        }}
+      >
         {this.props.children}
       </ChatkitContext.Provider>
     )
@@ -125,19 +140,100 @@ export function withChatkit(WrappedComponent) {
  */
 export function withChatkitOneToOne(WrappedComponent) {
   class WithChatkitOneToOne extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = {
+        otherUser: null,
+        otherUserIsTyping: null,
+        otherUserPresence: null,
+        messages: [],
+        isLoading: true,
+      }
+      this._currentUserId = null
+      this._otherUserId = props.otherUserId
+
+      this._roomId = null
+    }
+
+    componentDidMount() {
+      this.context.addOnLoadListener(() => {
+        this._currentUserId = this.context.chatkit.currentUser.id
+        this._roomId = makeOneToOneRoomId(
+          this._currentUserId,
+          this._otherUserId,
+        )
+
+        const alreadyInRoom = this.context.chatkit.currentUser.rooms.some(
+          r => r.id === this._roomId,
+        )
+
+        ;(alreadyInRoom
+          ? Promise.resolve()
+          : this.context.chatkit.currentUser.serverInstanceV6.request({
+              method: "post",
+              path: "/one_to_one_rooms",
+              json: {
+                user_id: this._otherUserId,
+              },
+            })
+        )
+          .then(() =>
+            this.context.chatkit.currentUser.subscribeToRoomMultipart({
+              roomId: this._roomId,
+              hooks: {
+                onMessage: message =>
+                  this.setState(state => ({
+                    messages: [...state.messages, message],
+                  })),
+              },
+            }),
+          )
+          .then(room =>
+            this.setState({
+              otherUser: room.users.find(u => u.id === this._otherUserId),
+              isLoading: false,
+            }),
+          )
+          .catch(err => console.error(err))
+      })
+    }
+
     render() {
-      return <WrappedComponent chatkit={this.context.chatkit} {...this.props} />
+      return (
+        <WrappedComponent
+          chatkit={{
+            ...this.context.chatkit,
+            otherUser: this.state.otherUser,
+            messages: this.state.messages,
+            isLoading: this.state.isLoading,
+          }}
+          {...this.props}
+        />
+      )
     }
   }
   WithChatkitOneToOne.contextType = ChatkitContext
   WithChatkitOneToOne.displayName = `WithChatkitOneToOne(${getDisplayName(
     WrappedComponent,
   )})`
+  WithChatkitOneToOne.propTypes = {
+    otherUserId: PropTypes.string.isRequired,
+  }
+
   return WithChatkitOneToOne
 }
 
 const getDisplayName = WrappedComponent => {
   return WrappedComponent.displayName || WrappedComponent.name || "Component"
+}
+
+const makeOneToOneRoomId = (idA, idB) => {
+  if (idB > idA) {
+    const temp = idA
+    idA = idB
+    idB = temp
+  }
+  return `${btoa(idA)}-${btoa(idB)}`
 }
 
 export default { ChatkitProvider, withChatkit, withChatkitOneToOne }

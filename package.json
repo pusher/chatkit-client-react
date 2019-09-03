@@ -7,7 +7,7 @@
   "author": "support@pusher.com",
   "license": "MIT",
   "scripts": {
-    "test": "jest ./tests",
+    "test": "jest --bail ./tests",
     "lint": "eslint src tests",
     "build": "babel src --out-dir dist --copy-files",
     "format": "prettier --write src/**/*.js tests/**/*.js"
