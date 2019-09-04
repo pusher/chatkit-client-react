@@ -54,9 +54,19 @@ class FakeAPI {
     this.currentUser.onMessage(message)
     return message
   }
+
+  getMessages({ roomId }) {
+    if (!this.messages[roomId]) {
+      throw new Error(`room with id ${roomId} not found in fake API`)
+    }
+    return this.messages[roomId]
+  }
 }
 
-export const fakeAPI = new FakeAPI()
+export let fakeAPI = new FakeAPI()
+export const reset = () => {
+  fakeAPI = new FakeAPI()
+}
 
 export class Room {
   constructor({ id, userIds }) {
@@ -66,6 +76,10 @@ export class Room {
 
   get users() {
     return this.userIds.map(id => fakeAPI.getUser({ id }))
+  }
+
+  get messages() {
+    return fakeAPI.getMessages({ roomId: this.id })
   }
 }
 
@@ -140,6 +154,25 @@ export class CurrentUser {
     return fakeAPI.getRoomsByUserId({ userId: this.id })
   }
 
+  sendSimpleMessage({ roomId, text }) {
+    try {
+      return Promise.resolve(
+        fakeAPI.createMessage({
+          roomId,
+          senderId: this.id,
+          parts: [
+            {
+              type: "text/plain",
+              content: text,
+            },
+          ],
+        }),
+      )
+    } catch (e) {
+      return Promise.reject(e)
+    }
+  }
+
   onMessage(message) {
     if (
       this.hooks.rooms[message.roomId] &&
@@ -175,11 +208,12 @@ export class Message {
 }
 
 export default {
+  getFakeAPI: () => fakeAPI,
   ChatManager,
   CurrentUser,
-  User,
-  Room,
   Message,
-  API: fakeAPI,
+  Room,
+  User,
   makeOneToOneRoomId,
+  reset,
 }

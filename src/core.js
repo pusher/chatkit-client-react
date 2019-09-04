@@ -155,6 +155,13 @@ export function withChatkitOneToOne(WrappedComponent) {
       this._roomId = null
     }
 
+    _sendSimpleMessage({ text }) {
+      return this.context.chatkit.currentUser.sendSimpleMessage({
+        roomId: this._roomId,
+        text,
+      })
+    }
+
     componentDidMount() {
       this.context.addOnLoadListener(() => {
         this._currentUserId = this.context.chatkit.currentUser.id
@@ -206,6 +213,7 @@ export function withChatkitOneToOne(WrappedComponent) {
             otherUser: this.state.otherUser,
             messages: this.state.messages,
             isLoading: this.state.isLoading,
+            sendSimpleMessage: options => this._sendSimpleMessage(options),
           }}
           {...this.props}
         />

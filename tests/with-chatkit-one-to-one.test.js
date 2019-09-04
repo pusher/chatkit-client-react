@@ -8,8 +8,11 @@ import ChatkitFake from "./chatkit-fake"
 
 jest.mock("@pusher/chatkit-client")
 
-ChatkitFake.API.createUser({ id: "alice" })
-ChatkitFake.API.createUser({ id: "bob" })
+beforeEach(() => {
+  ChatkitFake.reset()
+  ChatkitFake.getFakeAPI().createUser({ id: "alice" })
+  ChatkitFake.getFakeAPI().createUser({ id: "bob" })
+})
 
 describe("withChatkitOneToOne higher-order-component", () => {
   Chatkit.ChatManager = ChatkitFake.ChatManager
@@ -260,7 +263,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
 
       componentDidUpdate() {
         if (!this.props.chatkit.isLoading && message === null) {
-          message = ChatkitFake.API.createMessage({
+          message = ChatkitFake.getFakeAPI().createMessage({
             roomId: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
             senderId: otherUserId,
             parts: "some parts yo",
@@ -299,6 +302,61 @@ describe("withChatkitOneToOne higher-order-component", () => {
       renderer.toJSON()
     }).then(value => {
       expect(value).toEqual([message])
+    })
+  })
+
+  it("should inject a working sendSimpleMessage method", () => {
+    let message = null
+
+    class TestComponentWithDidUpdate extends React.Component {
+      render() {
+        return <div>Hello World</div>
+      }
+
+      componentDidUpdate() {
+        if (!this.props.chatkit.isLoading && message === null) {
+          message = {
+            text: "MY_MESSAGE",
+          }
+          this.props.chatkit.sendSimpleMessage(message)
+          this.props.onComplete()
+        }
+      }
+    }
+
+    TestComponentWithDidUpdate.propTypes = {
+      chatkit: PropTypes.object,
+      onComplete: PropTypes.func.isRequired,
+    }
+
+    const WrappedComponent = core.withChatkitOneToOne(
+      TestComponentWithDidUpdate,
+    )
+
+    return new Promise(resolve => {
+      const page = (
+        <core.ChatkitProvider
+          instanceLocator={instanceLocator}
+          tokenProvider={tokenProvider}
+          userId={userId}
+        >
+          <WrappedComponent otherUserId={otherUserId} onComplete={resolve} />
+        </core.ChatkitProvider>
+      )
+      const renderer = TestRenderer.create(page)
+      renderer.toJSON()
+    }).then(() => {
+      const room = ChatkitFake.getFakeAPI().getRoom({
+        id: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
+      })
+      expect(room.messages).toHaveLength(1)
+      const message = room.messages[0]
+      expect(message.parts).toEqual([
+        {
+          type: "text/plain",
+          content: "MY_MESSAGE",
+        },
+      ])
     })
   })
 })
