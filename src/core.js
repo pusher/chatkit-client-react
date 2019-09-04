@@ -162,6 +162,13 @@ export function withChatkitOneToOne(WrappedComponent) {
       })
     }
 
+    _sendMultipartMessage({ parts }) {
+      return this.context.chatkit.currentUser.sendMultipartMessage({
+        roomId: this._roomId,
+        parts,
+      })
+    }
+
     componentDidMount() {
       this.context.addOnLoadListener(() => {
         this._currentUserId = this.context.chatkit.currentUser.id
@@ -214,6 +221,8 @@ export function withChatkitOneToOne(WrappedComponent) {
             messages: this.state.messages,
             isLoading: this.state.isLoading,
             sendSimpleMessage: options => this._sendSimpleMessage(options),
+            sendMultipartMessage: options =>
+              this._sendMultipartMessage(options),
           }}
           {...this.props}
         />

@@ -359,4 +359,64 @@ describe("withChatkitOneToOne higher-order-component", () => {
       ])
     })
   })
+
+  it("should inject a working sendMultipartMessage method", () => {
+    let messageParts = null
+
+    class TestComponentWithDidUpdate extends React.Component {
+      render() {
+        return <div>Hello World</div>
+      }
+
+      componentDidUpdate() {
+        if (!this.props.chatkit.isLoading && messageParts === null) {
+          messageParts = [
+            {
+              type: "application/json",
+              content: "2019",
+            },
+          ]
+          this.props.chatkit.sendMultipartMessage({
+            parts: messageParts,
+          })
+          this.props.onComplete()
+        }
+      }
+    }
+
+    TestComponentWithDidUpdate.propTypes = {
+      chatkit: PropTypes.object,
+      onComplete: PropTypes.func.isRequired,
+    }
+
+    const WrappedComponent = core.withChatkitOneToOne(
+      TestComponentWithDidUpdate,
+    )
+
+    return new Promise(resolve => {
+      const page = (
+        <core.ChatkitProvider
+          instanceLocator={instanceLocator}
+          tokenProvider={tokenProvider}
+          userId={userId}
+        >
+          <WrappedComponent otherUserId={otherUserId} onComplete={resolve} />
+        </core.ChatkitProvider>
+      )
+      const renderer = TestRenderer.create(page)
+      renderer.toJSON()
+    }).then(() => {
+      const room = ChatkitFake.getFakeAPI().getRoom({
+        id: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
+      })
+      expect(room.messages).toHaveLength(1)
+      const message = room.messages[0]
+      expect(message.parts).toEqual([
+        {
+          type: "application/json",
+          content: "2019",
+        },
+      ])
+    })
+  })
 })

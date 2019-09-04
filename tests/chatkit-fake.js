@@ -173,6 +173,20 @@ export class CurrentUser {
     }
   }
 
+  sendMultipartMessage({ roomId, parts }) {
+    try {
+      return Promise.resolve(
+        fakeAPI.createMessage({
+          roomId,
+          senderId: this.id,
+          parts,
+        }),
+      )
+    } catch (e) {
+      return Promise.reject(e)
+    }
+  }
+
   onMessage(message) {
     if (
       this.hooks.rooms[message.roomId] &&
