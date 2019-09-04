@@ -8,6 +8,15 @@ class FakeAPI {
     this.currentUser = null
   }
 
+  reset() {
+    this.rooms = {}
+    this.users = {}
+    this.messages = {}
+    this.nextMessageId = 0
+    this.messageSubscriptions = {}
+    this.currentUser = null
+  }
+
   createRoom({ id, userIds }) {
     for (let userId of userIds) {
       if (!this.users[userId]) {
@@ -63,10 +72,7 @@ class FakeAPI {
   }
 }
 
-export let fakeAPI = new FakeAPI()
-export const reset = () => {
-  fakeAPI = new FakeAPI()
-}
+export const fakeAPI = new FakeAPI()
 
 export class Room {
   constructor({ id, userIds }) {
@@ -222,12 +228,11 @@ export class Message {
 }
 
 export default {
-  getFakeAPI: () => fakeAPI,
+  fakeAPI,
   ChatManager,
   CurrentUser,
   Message,
   Room,
   User,
   makeOneToOneRoomId,
-  reset,
 }

@@ -9,9 +9,9 @@ import ChatkitFake from "./chatkit-fake"
 jest.mock("@pusher/chatkit-client")
 
 beforeEach(() => {
-  ChatkitFake.reset()
-  ChatkitFake.getFakeAPI().createUser({ id: "alice" })
-  ChatkitFake.getFakeAPI().createUser({ id: "bob" })
+  ChatkitFake.fakeAPI.reset()
+  ChatkitFake.fakeAPI.createUser({ id: "alice" })
+  ChatkitFake.fakeAPI.createUser({ id: "bob" })
 })
 
 describe("withChatkitOneToOne higher-order-component", () => {
@@ -263,7 +263,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
 
       componentDidUpdate() {
         if (!this.props.chatkit.isLoading && message === null) {
-          message = ChatkitFake.getFakeAPI().createMessage({
+          message = ChatkitFake.fakeAPI.createMessage({
             roomId: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
             senderId: otherUserId,
             parts: "some parts yo",
@@ -346,7 +346,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
       const renderer = TestRenderer.create(page)
       renderer.toJSON()
     }).then(() => {
-      const room = ChatkitFake.getFakeAPI().getRoom({
+      const room = ChatkitFake.fakeAPI.getRoom({
         id: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
       })
       expect(room.messages).toHaveLength(1)
@@ -406,7 +406,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
       const renderer = TestRenderer.create(page)
       renderer.toJSON()
     }).then(() => {
-      const room = ChatkitFake.getFakeAPI().getRoom({
+      const room = ChatkitFake.fakeAPI.getRoom({
         id: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
       })
       expect(room.messages).toHaveLength(1)
