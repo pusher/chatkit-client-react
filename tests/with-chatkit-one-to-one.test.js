@@ -5,6 +5,7 @@ import TestRenderer from "react-test-renderer"
 
 import core from "../src/core"
 import ChatkitFake from "./chatkit-fake"
+import testHelpers from "./helpers"
 
 jest.mock("@pusher/chatkit-client")
 
@@ -35,107 +36,63 @@ describe("withChatkitOneToOne higher-order-component", () => {
     callback: PropTypes.func.isRequired,
   }
 
-  it("should inject a properly configured ChatManager", () => {
-    const WrappedComponent = core.withChatkitOneToOne(TestComponent)
+  const runInTestRenderer = ({ resolveWhen, onLoad }) =>
+    testHelpers.runInTestRenderer({
+      instanceLocator,
+      tokenProvider,
+      userId,
+      higherOrderComponent: core.withChatkitOneToOne,
+      resolveWhen,
+      onLoad,
+      wrappedComponentProps: {
+        otherUserId,
+      },
+    })
 
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent
-            otherUserId={otherUserId}
-            callback={props => {
-              if (props.chatkit.chatManager !== null) {
-                resolve(props.chatkit.chatManager)
-              }
-            }}
-          />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
-    }).then(value => {
-      expect(value).toBeInstanceOf(Chatkit.ChatManager)
-      expect(value.instanceLocator).toBe(instanceLocator)
-      expect(value.tokenProvider).toBe(tokenProvider)
-      expect(value.userId).toBe(userId)
-      expect(value.connected).toBe(true)
+  it("should inject a properly configured ChatManager", () => {
+    return runInTestRenderer({
+      resolveWhen: props => props.chatkit.chatManager !== null,
+    }).then(({ props }) => {
+      const chatManager = props.chatkit.chatManager
+      expect(chatManager).toBeInstanceOf(Chatkit.ChatManager)
+      expect(chatManager.instanceLocator).toBe(instanceLocator)
+      expect(chatManager.tokenProvider).toBe(tokenProvider)
+      expect(chatManager.userId).toBe(userId)
+      expect(chatManager.connected).toBe(true)
     })
   })
 
   it("should inject a properly configured CurrentUser", () => {
-    const WrappedComponent = core.withChatkitOneToOne(TestComponent)
-
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent
-            otherUserId={otherUserId}
-            callback={props => {
-              if (props.chatkit.currentUser !== null) {
-                resolve(props.chatkit.currentUser)
-              }
-            }}
-          />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
-    }).then(value => {
-      expect(value).toBeInstanceOf(Chatkit.CurrentUser)
-      expect(value.id).toBe(userId)
+    return runInTestRenderer({
+      resolveWhen: props => props.chatkit.currentUser !== null,
+    }).then(({ props }) => {
+      const currentUser = props.chatkit.currentUser
+      expect(currentUser).toBeInstanceOf(Chatkit.CurrentUser)
+      expect(currentUser.id).toBe(userId)
     })
   })
 
   it("should inject isLoading and update appropriately", () => {
-    const WrappedComponent = core.withChatkitOneToOne(TestComponent)
+    return runInTestRenderer({
+      resolveWhen: props => !props.chatkit.isLoading,
+    }).then(({ props, initialProps }) => {
+      expect(initialProps.chatkit.isLoading).toBe(true)
 
-    let firstValue = null
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent
-            otherUserId={otherUserId}
-            callback={props => {
-              if (firstValue === null) {
-                firstValue = props.chatkit.isLoading
-              }
-              if (!props.chatkit.isLoading) {
-                resolve({
-                  isLoading: props.chatkit.isLoading,
-                  currentUser: props.chatkit.currentUser,
-                  otherUser: props.chatkit.otherUser,
-                })
-              }
-            }}
-          />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
-    }).then(({ isLoading, currentUser, otherUser }) => {
-      expect(firstValue).toBe(true)
-      expect(isLoading).toBe(false)
-      expect(currentUser).toBeInstanceOf(Chatkit.CurrentUser)
-      expect(otherUser).toBeInstanceOf(Chatkit.User)
+      expect(props.chatkit.isLoading).toBe(false)
+      expect(props.chatkit.currentUser).toBeInstanceOf(Chatkit.CurrentUser)
+      expect(props.chatkit.otherUser).toBeInstanceOf(Chatkit.User)
     })
   })
 
   it("should have a readable display name", () => {
-    const WrappedComponent = core.withChatkitOneToOne(TestComponent)
+    class SomeComponent extends React.Component {
+      render() {
+        return null
+      }
+    }
+    const WrappedComponent = core.withChatkitOneToOne(SomeComponent)
     expect(WrappedComponent.displayName).toBe(
-      "WithChatkitOneToOne(TestComponent)",
+      "WithChatkitOneToOne(SomeComponent)",
     )
   })
 
@@ -165,186 +122,55 @@ describe("withChatkitOneToOne higher-order-component", () => {
   })
 
   it("should inject otherUser via props", () => {
-    const WrappedComponent = core.withChatkitOneToOne(TestComponent)
-
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent
-            otherUserId={otherUserId}
-            callback={props => {
-              if (props.chatkit.otherUser !== null) {
-                resolve(props.chatkit.otherUser)
-              }
-            }}
-          />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
-    }).then(value => {
-      expect(value).toBeInstanceOf(Chatkit.User)
-      expect(value.id).toBe(otherUserId)
+    return runInTestRenderer({
+      resolveWhen: props => props.chatkit.otherUser !== null,
+    }).then(({ props }) => {
+      const otherUser = props.chatkit.otherUser
+      expect(otherUser).toBeInstanceOf(Chatkit.User)
+      expect(otherUser.id).toBe(otherUserId)
     })
   })
 
   it("should start inject messages as empty array if there are no messages", () => {
-    const WrappedComponent = core.withChatkitOneToOne(TestComponent)
-
-    const observations = []
-
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent
-            otherUserId={otherUserId}
-            callback={props => {
-              observations.push(props.chatkit.messages)
-              if (!props.chatkit.isLoading) {
-                resolve()
-              }
-            }}
-          />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
-    }).then(() => {
-      observations.forEach(messages => expect(messages).toEqual([]))
-    })
-  })
-
-  it("should start inject messages as empty array if there are no messages", () => {
-    const WrappedComponent = core.withChatkitOneToOne(TestComponent)
-
-    const observations = []
-
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent
-            otherUserId={otherUserId}
-            callback={props => {
-              observations.push(props.chatkit.messages)
-              if (!props.chatkit.isLoading) {
-                resolve()
-              }
-            }}
-          />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
-    }).then(() => {
-      observations.forEach(messages => expect(messages).toEqual([]))
+    return runInTestRenderer({
+      resolveWhen: props => !props.chatkit.isLoading,
+    }).then(({ initialProps, props }) => {
+      expect(initialProps.chatkit.messages).toEqual([])
+      expect(props.chatkit.messages).toEqual([])
     })
   })
 
   it("should update messages in props when a new message is received", () => {
-    let message = null
-
-    class TestComponentWithDidUpdate extends React.Component {
-      render() {
-        this.props.callback(this.props)
-        return <div>Hello World</div>
-      }
-
-      componentDidUpdate() {
-        if (!this.props.chatkit.isLoading && message === null) {
-          message = ChatkitFake.fakeAPI.createMessage({
-            roomId: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
-            senderId: otherUserId,
-            parts: "some parts yo",
-          })
-        }
-      }
-    }
-
-    TestComponentWithDidUpdate.propTypes = {
-      chatkit: PropTypes.object,
-      callback: PropTypes.func.isRequired,
-    }
-
-    const WrappedComponent = core.withChatkitOneToOne(
-      TestComponentWithDidUpdate,
-    )
-
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent
-            otherUserId={otherUserId}
-            callback={props => {
-              if (props.chatkit.messages.length > 0) {
-                resolve(props.chatkit.messages)
-              }
-            }}
-          />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
-    }).then(value => {
-      expect(value).toEqual([message])
+    const messageParts = [
+      {
+        type: "text/plain",
+        content: "Hi!",
+      },
+    ]
+    return runInTestRenderer({
+      onLoad: () => {
+        ChatkitFake.fakeAPI.createMessage({
+          roomId: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
+          senderId: otherUserId,
+          parts: messageParts,
+        })
+      },
+      resolveWhen: props => props.chatkit.messages.length !== 0,
+    }).then(({ props }) => {
+      expect(props.chatkit.messages).toHaveLength(1)
+      const message = props.chatkit.messages[0]
+      expect(message.parts).toEqual(messageParts)
     })
   })
 
   it("should inject a working sendSimpleMessage method", () => {
-    let message = null
-
-    class TestComponentWithDidUpdate extends React.Component {
-      render() {
-        return <div>Hello World</div>
-      }
-
-      componentDidUpdate() {
-        if (!this.props.chatkit.isLoading && message === null) {
-          message = {
-            text: "MY_MESSAGE",
-          }
-          this.props.chatkit.sendSimpleMessage(message)
-          this.props.onComplete()
-        }
-      }
-    }
-
-    TestComponentWithDidUpdate.propTypes = {
-      chatkit: PropTypes.object,
-      onComplete: PropTypes.func.isRequired,
-    }
-
-    const WrappedComponent = core.withChatkitOneToOne(
-      TestComponentWithDidUpdate,
-    )
-
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent otherUserId={otherUserId} onComplete={resolve} />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
+    return runInTestRenderer({
+      onLoad: props => {
+        props.chatkit.sendSimpleMessage({
+          text: "MY_MESSAGE",
+        })
+      },
+      resolveWhen: props => props.chatkit.messages.length > 0,
     }).then(() => {
       const room = ChatkitFake.fakeAPI.getRoom({
         id: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
@@ -361,50 +187,18 @@ describe("withChatkitOneToOne higher-order-component", () => {
   })
 
   it("should inject a working sendMultipartMessage method", () => {
-    let messageParts = null
-
-    class TestComponentWithDidUpdate extends React.Component {
-      render() {
-        return <div>Hello World</div>
-      }
-
-      componentDidUpdate() {
-        if (!this.props.chatkit.isLoading && messageParts === null) {
-          messageParts = [
+    return runInTestRenderer({
+      onLoad: props => {
+        props.chatkit.sendMultipartMessage({
+          parts: [
             {
               type: "application/json",
               content: "2019",
             },
-          ]
-          this.props.chatkit.sendMultipartMessage({
-            parts: messageParts,
-          })
-          this.props.onComplete()
-        }
-      }
-    }
-
-    TestComponentWithDidUpdate.propTypes = {
-      chatkit: PropTypes.object,
-      onComplete: PropTypes.func.isRequired,
-    }
-
-    const WrappedComponent = core.withChatkitOneToOne(
-      TestComponentWithDidUpdate,
-    )
-
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent otherUserId={otherUserId} onComplete={resolve} />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
+          ],
+        })
+      },
+      resolveWhen: props => props.chatkit.messages.length > 0,
     }).then(() => {
       const room = ChatkitFake.fakeAPI.getRoom({
         id: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
