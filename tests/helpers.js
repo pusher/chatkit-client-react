@@ -35,7 +35,7 @@ const runInTestRenderer = ({
   higherOrderComponent,
   resolveWhen,
   onLoad = () => {},
-  wrappedComponentProps,
+  wrappedComponentProps = {},
 }) => {
   const WrappedComponent = higherOrderComponent(TestComponent)
 

@@ -5,6 +5,7 @@ import TestRenderer from "react-test-renderer"
 
 import core from "../src/core"
 import ChatkitFake from "./chatkit-fake"
+import testHelpers from "./helpers"
 
 jest.mock("@pusher/chatkit-client")
 
@@ -26,95 +27,46 @@ describe("withChatkit higher-order-component", () => {
     callback: PropTypes.func.isRequired,
   }
 
-  it("should inject a properly configured ChatManager", () => {
-    const WrappedComponent = core.withChatkit(TestComponent)
+  const runInTestRenderer = ({ resolveWhen, onLoad }) =>
+    testHelpers.runInTestRenderer({
+      instanceLocator,
+      tokenProvider,
+      userId,
+      higherOrderComponent: core.withChatkit,
+      resolveWhen,
+      onLoad,
+    })
 
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent
-            callback={props => {
-              if (props.chatkit.chatManager !== null) {
-                resolve(props.chatkit.chatManager)
-              }
-            }}
-          />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
-    }).then(value => {
-      expect(value).toBeInstanceOf(Chatkit.ChatManager)
-      expect(value.instanceLocator).toBe(instanceLocator)
-      expect(value.tokenProvider).toBe(tokenProvider)
-      expect(value.userId).toBe(userId)
-      expect(value.connected).toBe(true)
+  it("should inject a properly configured ChatManager", () => {
+    return runInTestRenderer({
+      resolveWhen: props => props.chatkit.chatManager !== null,
+    }).then(({ props }) => {
+      const chatManager = props.chatkit.chatManager
+      expect(chatManager).toBeInstanceOf(Chatkit.ChatManager)
+      expect(chatManager.instanceLocator).toBe(instanceLocator)
+      expect(chatManager.tokenProvider).toBe(tokenProvider)
+      expect(chatManager.userId).toBe(userId)
+      expect(chatManager.connected).toBe(true)
     })
   })
 
   it("should inject a properly configured CurrentUser", () => {
-    const WrappedComponent = core.withChatkit(TestComponent)
-
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent
-            callback={props => {
-              if (props.chatkit.currentUser !== null) {
-                resolve(props.chatkit.currentUser)
-              }
-            }}
-          />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
-    }).then(value => {
-      expect(value).toBeInstanceOf(Chatkit.CurrentUser)
-      expect(value.id).toBe(userId)
+    return runInTestRenderer({
+      resolveWhen: props => props.chatkit.currentUser !== null,
+    }).then(({ props }) => {
+      const currentUser = props.chatkit.currentUser
+      expect(currentUser).toBeInstanceOf(Chatkit.CurrentUser)
+      expect(currentUser.id).toBe(userId)
     })
   })
 
   it("should inject isLoading and update appropriately", () => {
-    const WrappedComponent = core.withChatkit(TestComponent)
-
-    let firstValue = null
-    return new Promise(resolve => {
-      const page = (
-        <core.ChatkitProvider
-          instanceLocator={instanceLocator}
-          tokenProvider={tokenProvider}
-          userId={userId}
-        >
-          <WrappedComponent
-            callback={props => {
-              if (firstValue === null) {
-                firstValue = props.chatkit.isLoading
-              }
-              if (!props.chatkit.isLoading) {
-                resolve({
-                  isLoading: props.chatkit.isLoading,
-                  currentUser: props.chatkit.currentUser,
-                })
-              }
-            }}
-          />
-        </core.ChatkitProvider>
-      )
-      const renderer = TestRenderer.create(page)
-      renderer.toJSON()
-    }).then(({ isLoading, currentUser }) => {
-      expect(firstValue).toBe(true)
-      expect(isLoading).toBe(false)
-      expect(currentUser).toBeInstanceOf(Chatkit.CurrentUser)
+    return runInTestRenderer({
+      resolveWhen: props => !props.chatkit.isLoading,
+    }).then(({ props, initialProps }) => {
+      expect(initialProps.chatkit.isLoading).toBe(true)
+      expect(props.chatkit.isLoading).toBe(false)
+      expect(props.chatkit.currentUser).toBeInstanceOf(Chatkit.CurrentUser)
     })
   })
 
