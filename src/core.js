@@ -205,6 +205,12 @@ export function withChatkitOneToOne(WrappedComponent) {
                     messages: [...state.messages, message],
                   })),
 
+                onPresenceChanged: (state, user) => {
+                  if (user.id === this.props.otherUserId) {
+                    this.forceUpdate()
+                  }
+                },
+
                 onUserStartedTyping: user => {
                   if (user.id === this._otherUserId) {
                     this.setState({ otherUserIsTyping: true })
@@ -235,7 +241,7 @@ export function withChatkitOneToOne(WrappedComponent) {
       // for now as a cheap way to experiment.
       let otherUser = null
       if (this.state.otherUser !== null) {
-        otherUser = cloneUser(this.state.otherUser)
+        otherUser = Object.create(this.state.otherUser)
         otherUser.isTyping = this.state.otherUserIsTyping
       }
 
@@ -283,18 +289,5 @@ const makeOneToOneRoomId = (idA, idB) => {
   }
   return `${btoa(idA)}-${btoa(idB)}`
 }
-
-const cloneUser = user =>
-  new chatkit.User(
-    {
-      avatarURL: user.avatarURL,
-      createdAt: user.createdAt,
-      customData: user.customData,
-      id: user.id,
-      name: user.name,
-      updatedAt: user.updatedAt,
-    },
-    user.presenceStore,
-  )
 
 export default { ChatkitProvider, withChatkit, withChatkitOneToOne }

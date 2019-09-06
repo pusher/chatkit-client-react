@@ -93,6 +93,22 @@ class FakeAPI {
     }
     this.currentUser.onUserStoppedTyping(roomId, this.users[userId])
   }
+
+  sendPresenceEvent({ userId, newState }) {
+    if (!this.users[userId]) {
+      throw new Error(`user with id ${userId} not found in fake API`)
+    }
+    const user = this.users[userId]
+    const state = {
+      previous: user.presence.state,
+      current: newState,
+    }
+    user.presence.state = newState
+
+    if (userId !== this.currentUser.id) {
+      this.currentUser.onPresenceChanged(state, user)
+    }
+  }
 }
 
 export const fakeAPI = new FakeAPI()
@@ -252,11 +268,27 @@ export class CurrentUser {
       this.hooks.rooms[roomId].onUserStoppedTyping(user)
     }
   }
+
+  onPresenceChanged(state, user) {
+    Object.entries(this.hooks.rooms).forEach(([roomId, hooks]) => {
+      if (!hooks.onPresenceChanged) {
+        return
+      }
+      const room = fakeAPI.getRoom({ id: roomId })
+      if (!room.users.some(u => u.id === user.id)) {
+        return
+      }
+      hooks.onPresenceChanged(state, user)
+    })
+  }
 }
 
 export class User {
   constructor({ id }) {
     this.id = id
+    this.presence = {
+      state: "unknown",
+    }
   }
 }
 

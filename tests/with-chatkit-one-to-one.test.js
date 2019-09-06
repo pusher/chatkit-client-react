@@ -292,4 +292,23 @@ describe("withChatkitOneToOne higher-order-component", () => {
       expect(typingEvents[0].roomId).toEqual(roomId)
     })
   })
+
+  it("should trigger a render when there is an incoming presence change", () => {
+    return runInTestRenderer({
+      onLoad: () => {
+        ChatkitFake.fakeAPI.sendPresenceEvent({
+          userId: otherUserId,
+          newState: "online",
+        })
+      },
+      resolveWhen: props => {
+        return (
+          !props.chatkit.isLoading &&
+          props.chatkit.otherUser.presence.state === "online"
+        )
+      },
+    }).then(({ props }) => {
+      expect(props.chatkit.otherUser.presence.state).toEqual("online")
+    })
+  })
 })
