@@ -145,6 +145,7 @@ export function withChatkitOneToOne(WrappedComponent) {
       this.state = {
         otherUser: null,
         otherUserIsTyping: false,
+        otherUserLastReadMessageId: undefined,
         messages: [],
         isLoading: true,
       }
@@ -228,6 +229,12 @@ export function withChatkitOneToOne(WrappedComponent) {
           .then(room =>
             this.setState({
               otherUser: room.users.find(u => u.id === this._otherUserId),
+              otherUserLastReadMessageId: this.context.chatkit.currentUser.readCursor(
+                {
+                  userId: this._otherUserId,
+                  roomId: this._roomId,
+                },
+              ),
               isLoading: false,
             }),
           )
@@ -243,6 +250,7 @@ export function withChatkitOneToOne(WrappedComponent) {
       if (this.state.otherUser !== null) {
         otherUser = Object.create(this.state.otherUser)
         otherUser.isTyping = this.state.otherUserIsTyping
+        otherUser.lastReadMessageId = this.state.otherUserLastReadMessageId
       }
 
       // We don't want to forward configuration props to the wrapped component

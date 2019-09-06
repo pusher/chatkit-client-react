@@ -311,4 +311,26 @@ describe("withChatkitOneToOne higher-order-component", () => {
       expect(props.chatkit.otherUser.presence.state).toEqual("online")
     })
   })
+
+  it("should set otherUser.lastReadMessageId to the initial value on load", () => {
+    const roomId = ChatkitFake.makeOneToOneRoomId(userId, otherUserId)
+    const lastReadMessageId = 42
+    ChatkitFake.fakeAPI.createRoom({
+      id: roomId,
+      userIds: [userId, otherUserId],
+    })
+    ChatkitFake.fakeAPI.setCursor({
+      userId: otherUserId,
+      roomId,
+      position: lastReadMessageId,
+    })
+
+    return runInTestRenderer({
+      resolveWhen: props => !props.chatkit.isLoading,
+    }).then(({ props }) => {
+      expect(props.chatkit.otherUser.lastReadMessageId).toEqual(
+        lastReadMessageId,
+      )
+    })
+  })
 })

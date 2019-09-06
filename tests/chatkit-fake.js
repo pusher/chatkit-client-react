@@ -7,6 +7,7 @@ class FakeAPI {
     this.rooms = {}
     this.users = {}
     this.messages = {}
+    this.cursors = {}
     this.nextMessageId = 0
     this.messageSubscriptions = {}
     this.currentUser = null
@@ -108,6 +109,34 @@ class FakeAPI {
     if (userId !== this.currentUser.id) {
       this.currentUser.onPresenceChanged(state, user)
     }
+  }
+
+  setCursor({ userId, roomId, position }) {
+    if (!this.users[userId]) {
+      throw new Error(`user with id ${userId} not found in fake API`)
+    }
+    if (!this.rooms[roomId]) {
+      throw new Error(`room with id ${roomId} not found in fake API`)
+    }
+
+    if (this.cursors[roomId] === undefined) {
+      this.cursors[roomId] = {}
+    }
+    this.cursors[roomId][userId] = position
+  }
+
+  getCursor({ userId, roomId }) {
+    if (!this.users[userId]) {
+      throw new Error(`user with id ${userId} not found in fake API`)
+    }
+    if (!this.rooms[roomId]) {
+      throw new Error(`room with id ${roomId} not found in fake API`)
+    }
+
+    if (this.cursors[roomId] === undefined) {
+      return undefined
+    }
+    return this.cursors[roomId][userId]
   }
 }
 
@@ -280,6 +309,10 @@ export class CurrentUser {
       }
       hooks.onPresenceChanged(state, user)
     })
+  }
+
+  readCursor({ roomId, userId }) {
+    return fakeAPI.getCursor({ roomId, userId })
   }
 }
 
