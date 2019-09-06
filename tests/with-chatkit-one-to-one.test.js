@@ -121,6 +121,14 @@ describe("withChatkitOneToOne higher-order-component", () => {
     expect(result.children).toEqual(["some_value"])
   })
 
+  it("should NOT forward config props for the HOC", () => {
+    return runInTestRenderer({
+      resolveWhen: () => true,
+    }).then(({ props }) => {
+      expect(props.otherUserId).toBe(undefined)
+    })
+  })
+
   it("should inject otherUser via props", () => {
     return runInTestRenderer({
       resolveWhen: props => props.chatkit.otherUser !== null,

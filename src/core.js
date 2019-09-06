@@ -233,6 +233,10 @@ export function withChatkitOneToOne(WrappedComponent) {
         otherUser.isTyping = this.state.otherUserIsTyping
       }
 
+      // We don't want to forward configuration props to the wrapped component
+      const forwardedProps = { ...this.props }
+      delete forwardedProps.otherUserId
+
       return (
         <WrappedComponent
           chatkit={{
@@ -244,7 +248,7 @@ export function withChatkitOneToOne(WrappedComponent) {
             sendMultipartMessage: options =>
               this._sendMultipartMessage(options),
           }}
-          {...this.props}
+          {...forwardedProps}
         />
       )
     }
