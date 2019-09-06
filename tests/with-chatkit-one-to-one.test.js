@@ -213,4 +213,28 @@ describe("withChatkitOneToOne higher-order-component", () => {
       ])
     })
   })
+
+  it("should set otherUser.isTyping to true on userStartedTyping", () => {
+    const roomId = ChatkitFake.makeOneToOneRoomId(userId, otherUserId)
+
+    return runInTestRenderer({
+      resolveWhen: props => !props.chatkit.isLoading,
+    })
+      .then(({ props }) => {
+        expect(props.chatkit.otherUser.isTyping).toEqual(false)
+      })
+      .then(() =>
+        runInTestRenderer({
+          onLoad: () => {
+            ChatkitFake.fakeAPI.sendTypingEvent({ roomId, userId: otherUserId })
+          },
+          resolveWhen: props =>
+            !props.chatkit.isLoading &&
+            props.chatkit.otherUser.isTyping != false,
+        }),
+      )
+      .then(({ props }) => {
+        expect(props.chatkit.otherUser.isTyping).toEqual(true)
+      })
+  })
 })

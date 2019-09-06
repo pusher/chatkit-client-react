@@ -70,6 +70,30 @@ class FakeAPI {
     }
     return this.messages[roomId]
   }
+
+  sendTypingEvent({ roomId, userId }) {
+    if (!this.rooms[roomId]) {
+      throw new Error(`room with id ${roomId} not found in fake API`)
+    }
+    if (!this.rooms[roomId].users.map(u => u.id).includes(userId)) {
+      throw new Error(
+        `user with id ${userId} is not a member of room with id ${roomId}`,
+      )
+    }
+    this.currentUser.onUserStartedTyping(roomId, this.users[userId])
+  }
+
+  sendTypingStoppedEvent({ roomId, userId }) {
+    if (!this.rooms[roomId]) {
+      throw new Error(`room with id ${roomId} not found in fake API`)
+    }
+    if (!this.rooms[roomId].users.map(u => u.id).includes(userId)) {
+      throw new Error(
+        `user with id ${userId} is not a member of room with id ${roomId}`,
+      )
+    }
+    this.currentUser.onUserStoppedTyping(roomId, this.users[userId])
+  }
 }
 
 export const fakeAPI = new FakeAPI()
@@ -199,6 +223,24 @@ export class CurrentUser {
       this.hooks.rooms[message.roomId].onMessage
     ) {
       this.hooks.rooms[message.roomId].onMessage(message)
+    }
+  }
+
+  onUserStartedTyping(roomId, user) {
+    if (
+      this.hooks.rooms[roomId] &&
+      this.hooks.rooms[roomId].onUserStartedTyping
+    ) {
+      this.hooks.rooms[roomId].onUserStartedTyping(user)
+    }
+  }
+
+  onUserStoppedTyping(roomId, user) {
+    if (
+      this.hooks.rooms[roomId] &&
+      this.hooks.rooms[roomId].onUserStoppedTyping
+    ) {
+      this.hooks.rooms[roomId].onUserStoppedTyping(user)
     }
   }
 }

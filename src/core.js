@@ -144,8 +144,7 @@ export function withChatkitOneToOne(WrappedComponent) {
       super(props)
       this.state = {
         otherUser: null,
-        otherUserIsTyping: null,
-        otherUserPresence: null,
+        otherUserIsTyping: false,
         messages: [],
         isLoading: true,
       }
@@ -199,6 +198,18 @@ export function withChatkitOneToOne(WrappedComponent) {
                   this.setState(state => ({
                     messages: [...state.messages, message],
                   })),
+
+                onUserStartedTyping: user => {
+                  if (user.id === this._otherUserId) {
+                    this.setState({ otherUserIsTyping: true })
+                  }
+                },
+
+                onUserStoppedTyping: user => {
+                  if (user.id === this._otherUserId) {
+                    this.setState({ otherUserIsTyping: false })
+                  }
+                },
               },
             }),
           )
@@ -213,11 +224,20 @@ export function withChatkitOneToOne(WrappedComponent) {
     }
 
     render() {
+      // NOTE: At some point, if customers find them useful, we may want to
+      // add these properties to the JS SDK itself. We are adding them here
+      // for now as a cheap way to experiment.
+      let otherUser = null
+      if (this.state.otherUser !== null) {
+        otherUser = cloneUser(this.state.otherUser)
+        otherUser.isTyping = this.state.otherUserIsTyping
+      }
+
       return (
         <WrappedComponent
           chatkit={{
             ...this.context.chatkit,
-            otherUser: this.state.otherUser,
+            otherUser,
             messages: this.state.messages,
             isLoading: this.state.isLoading,
             sendSimpleMessage: options => this._sendSimpleMessage(options),
@@ -252,5 +272,18 @@ const makeOneToOneRoomId = (idA, idB) => {
   }
   return `${btoa(idA)}-${btoa(idB)}`
 }
+
+const cloneUser = user =>
+  new chatkit.User(
+    {
+      avatarURL: user.avatarURL,
+      createdAt: user.createdAt,
+      customData: user.customData,
+      id: user.id,
+      name: user.name,
+      updatedAt: user.updatedAt,
+    },
+    user.presenceStore,
+  )
 
 export default { ChatkitProvider, withChatkit, withChatkitOneToOne }
