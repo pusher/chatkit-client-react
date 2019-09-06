@@ -168,6 +168,12 @@ export function withChatkitOneToOne(WrappedComponent) {
       })
     }
 
+    _sendTypingEvent() {
+      return this.context.chatkit.currentUser.isTypingIn({
+        roomId: this._roomId,
+      })
+    }
+
     componentDidMount() {
       this.context.addOnLoadListener(() => {
         this._currentUserId = this.context.chatkit.currentUser.id
@@ -247,6 +253,7 @@ export function withChatkitOneToOne(WrappedComponent) {
             sendSimpleMessage: options => this._sendSimpleMessage(options),
             sendMultipartMessage: options =>
               this._sendMultipartMessage(options),
+            sendTypingEvent: options => this._sendTypingEvent(options),
           }}
           {...forwardedProps}
         />

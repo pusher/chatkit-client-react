@@ -245,4 +245,51 @@ describe("withChatkitOneToOne higher-order-component", () => {
         expect(props.chatkit.otherUser.isTyping).toEqual(true)
       })
   })
+
+  it("should trigger a typing event when sendTypingEvent is called", () => {
+    const roomId = ChatkitFake.makeOneToOneRoomId(userId, otherUserId)
+
+    return new Promise(resolve => {
+      class TestComponent extends React.Component {
+        constructor() {
+          super()
+          this._onLoadHasRun = false
+        }
+
+        componentDidUpdate() {
+          if (!this.props.chatkit.isLoading && !this._onLoadHasRun) {
+            this.props.chatkit.sendTypingEvent()
+            this._onLoadHasRun = true
+            resolve()
+          }
+        }
+
+        render() {
+          return null
+        }
+      }
+      TestComponent.propTypes = {
+        chatkit: PropTypes.object,
+      }
+
+      const WrappedComponent = core.withChatkitOneToOne(TestComponent)
+
+      const page = (
+        <core.ChatkitProvider
+          instanceLocator={instanceLocator}
+          tokenProvider={tokenProvider}
+          userId={userId}
+        >
+          <WrappedComponent otherUserId={otherUserId} />
+        </core.ChatkitProvider>
+      )
+
+      TestRenderer.create(page)
+    }).then(() => {
+      const typingEvents = ChatkitFake.fakeAPI.typingEvents
+      expect(typingEvents).toHaveLength(1)
+      expect(typingEvents[0].userId).toEqual(userId)
+      expect(typingEvents[0].roomId).toEqual(roomId)
+    })
+  })
 })

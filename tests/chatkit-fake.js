@@ -1,11 +1,6 @@
 class FakeAPI {
   constructor() {
-    this.rooms = {}
-    this.users = {}
-    this.messages = {}
-    this.nextMessageId = 0
-    this.messageSubscriptions = {}
-    this.currentUser = null
+    this.reset()
   }
 
   reset() {
@@ -15,6 +10,7 @@ class FakeAPI {
     this.nextMessageId = 0
     this.messageSubscriptions = {}
     this.currentUser = null
+    this.typingEvents = []
   }
 
   createRoom({ id, userIds }) {
@@ -80,7 +76,10 @@ class FakeAPI {
         `user with id ${userId} is not a member of room with id ${roomId}`,
       )
     }
-    this.currentUser.onUserStartedTyping(roomId, this.users[userId])
+    this.typingEvents.push({ roomId, userId })
+    if (userId !== this.currentUser.id) {
+      this.currentUser.onUserStartedTyping(roomId, this.users[userId])
+    }
   }
 
   sendTypingStoppedEvent({ roomId, userId }) {
@@ -211,6 +210,16 @@ export class CurrentUser {
           senderId: this.id,
           parts,
         }),
+      )
+    } catch (e) {
+      return Promise.reject(e)
+    }
+  }
+
+  isTypingIn({ roomId }) {
+    try {
+      return Promise.resolve(
+        fakeAPI.sendTypingEvent({ roomId, userId: this.id }),
       )
     } catch (e) {
       return Promise.reject(e)
