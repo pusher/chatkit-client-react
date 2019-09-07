@@ -28,14 +28,6 @@ describe("withChatkitOneToOne higher-order-component", () => {
   const userId = "alice"
   const otherUserId = "bob"
 
-  const TestComponent = props => {
-    props.callback(props)
-    return <div>Hello World</div>
-  }
-  TestComponent.propTypes = {
-    callback: PropTypes.func.isRequired,
-  }
-
   const runInTestRenderer = ({ resolveWhen, onLoad }) =>
     testHelpers.runInTestRenderer({
       instanceLocator,

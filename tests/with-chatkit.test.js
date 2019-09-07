@@ -19,14 +19,6 @@ describe("withChatkit higher-order-component", () => {
   })
   const userId = "alice"
 
-  const TestComponent = props => {
-    props.callback(props)
-    return <div>Hello World</div>
-  }
-  TestComponent.propTypes = {
-    callback: PropTypes.func.isRequired,
-  }
-
   const runInTestRenderer = ({ resolveWhen, onLoad }) =>
     testHelpers.runInTestRenderer({
       instanceLocator,
@@ -71,8 +63,13 @@ describe("withChatkit higher-order-component", () => {
   })
 
   it("should have a readable display name", () => {
-    const WrappedComponent = core.withChatkit(TestComponent)
-    expect(WrappedComponent.displayName).toBe("WithChatkit(TestComponent)")
+    class SomeComponent extends React.Component {
+      render() {
+        return null
+      }
+    }
+    const WrappedComponent = core.withChatkit(SomeComponent)
+    expect(WrappedComponent.displayName).toBe("WithChatkit(SomeComponent)")
   })
 
   it("should forward props to nested component", () => {
