@@ -27,6 +27,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
   })
   const userId = "alice"
   const otherUserId = "bob"
+  const roomId = ChatkitFake.makeOneToOneRoomId(userId, otherUserId)
 
   const runInTestRenderer = ({ resolveWhen, onLoad }) =>
     testHelpers.runInTestRenderer({
@@ -150,7 +151,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
     return runInTestRenderer({
       onLoad: () => {
         ChatkitFake.fakeAPI.createMessage({
-          roomId: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
+          roomId,
           senderId: otherUserId,
           parts: messageParts,
         })
@@ -215,8 +216,6 @@ describe("withChatkitOneToOne higher-order-component", () => {
   })
 
   it("should set otherUser.isTyping to true on userStartedTyping", () => {
-    const roomId = ChatkitFake.makeOneToOneRoomId(userId, otherUserId)
-
     return runInTestRenderer({
       resolveWhen: props => !props.chatkit.isLoading,
     })
@@ -239,8 +238,6 @@ describe("withChatkitOneToOne higher-order-component", () => {
   })
 
   it("should trigger a typing event when sendTypingEvent is called", () => {
-    const roomId = ChatkitFake.makeOneToOneRoomId(userId, otherUserId)
-
     return new Promise(resolve => {
       class TestComponent extends React.Component {
         constructor() {
@@ -305,7 +302,6 @@ describe("withChatkitOneToOne higher-order-component", () => {
   })
 
   it("should set otherUser.lastReadMessageId to the initial value on load", () => {
-    const roomId = ChatkitFake.makeOneToOneRoomId(userId, otherUserId)
     const lastReadMessageId = 42
     ChatkitFake.fakeAPI.createRoom({
       id: roomId,
@@ -327,7 +323,6 @@ describe("withChatkitOneToOne higher-order-component", () => {
   })
 
   it("should set otherUser.lastReadMessageId to the latest value", () => {
-    const roomId = ChatkitFake.makeOneToOneRoomId(userId, otherUserId)
     const lastReadMessageId = 42
 
     return runInTestRenderer({
