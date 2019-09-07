@@ -333,4 +333,29 @@ describe("withChatkitOneToOne higher-order-component", () => {
       )
     })
   })
+
+  it("should set otherUser.lastReadMessageId to the latest value", () => {
+    const roomId = ChatkitFake.makeOneToOneRoomId(userId, otherUserId)
+    const lastReadMessageId = 42
+
+    return runInTestRenderer({
+      onLoad: () => {
+        ChatkitFake.fakeAPI.setCursor({
+          userId: otherUserId,
+          roomId,
+          position: lastReadMessageId,
+        })
+      },
+      resolveWhen: props => {
+        return (
+          !props.chatkit.isLoading &&
+          props.chatkit.otherUser.lastReadMessageId !== undefined
+        )
+      },
+    }).then(({ props }) => {
+      expect(props.chatkit.otherUser.lastReadMessageId).toEqual(
+        lastReadMessageId,
+      )
+    })
+  })
 })

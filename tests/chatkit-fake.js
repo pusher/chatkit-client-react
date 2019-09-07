@@ -123,6 +123,11 @@ class FakeAPI {
       this.cursors[roomId] = {}
     }
     this.cursors[roomId][userId] = position
+    if (this.currentUser) {
+      const room = this.rooms[roomId]
+      const user = this.users[userId]
+      this.currentUser.onNewReadCursor({ user, room, position })
+    }
   }
 
   getCursor({ userId, roomId }) {
@@ -309,6 +314,13 @@ export class CurrentUser {
       }
       hooks.onPresenceChanged(state, user)
     })
+  }
+
+  onNewReadCursor(cursor) {
+    const roomId = cursor.room.id
+    if (this.hooks.rooms[roomId] && this.hooks.rooms[roomId].onNewReadCursor) {
+      this.hooks.rooms[roomId].onNewReadCursor(cursor)
+    }
   }
 
   readCursor({ roomId, userId }) {

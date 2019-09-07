@@ -223,6 +223,16 @@ export function withChatkitOneToOne(WrappedComponent) {
                     this.setState({ otherUserIsTyping: false })
                   }
                 },
+
+                onNewReadCursor: cursor => {
+                  const cursorBelongsToOtherUser =
+                    cursor.user.id === this._otherUserId
+                  if (cursorBelongsToOtherUser) {
+                    this.setState({
+                      otherUserLastReadMessageId: cursor.position,
+                    })
+                  }
+                },
               },
             }),
           )
