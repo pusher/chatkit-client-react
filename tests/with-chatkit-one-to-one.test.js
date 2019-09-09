@@ -345,4 +345,76 @@ describe("withChatkitOneToOne higher-order-component", () => {
       )
     })
   })
+
+  it("should inject a working setReadCursor method", () => {
+    let messageId = null
+
+    return new Promise(resolve => {
+      class TestComponent extends React.Component {
+        constructor() {
+          super()
+          this._hasSentMessage = false
+          this._hasSetReadCursor = false
+        }
+
+        componentDidUpdate() {
+          if (this.props.chatkit.isLoading) {
+            return
+          }
+
+          if (!this._hasSentMessage) {
+            const message = ChatkitFake.fakeAPI.createMessage({
+              roomId,
+              senderId: otherUserId,
+              parts: [
+                {
+                  type: "text/plain",
+                  content: "Hi!",
+                },
+              ],
+            })
+            this._hasSentMessage = true
+            messageId = message.id
+          }
+
+          if (
+            this.props.chatkit.messages.length > 0 &&
+            !this._hasSetReadCursor
+          ) {
+            this.props.chatkit.setReadCursor()
+            this._hasSetReadCursor = true
+            resolve()
+          }
+        }
+
+        render() {
+          return null
+        }
+      }
+      TestComponent.propTypes = {
+        chatkit: PropTypes.object,
+      }
+
+      const WrappedComponent = core.withChatkitOneToOne(TestComponent)
+
+      const page = (
+        <core.ChatkitProvider
+          instanceLocator={instanceLocator}
+          tokenProvider={tokenProvider}
+          userId={userId}
+        >
+          <WrappedComponent otherUserId={otherUserId} />
+        </core.ChatkitProvider>
+      )
+
+      TestRenderer.create(page)
+    }).then(() => {
+      const cursor = ChatkitFake.fakeAPI.getCursor({
+        roomId,
+        userId,
+      })
+      expect(messageId).not.toEqual(null)
+      expect(cursor).toEqual(messageId)
+    })
+  })
 })

@@ -153,6 +153,7 @@ export function withChatkitOneToOne(WrappedComponent) {
       this._otherUserId = props.otherUserId
 
       this._roomId = null
+      this._currentUserLastReadMessageId = null
     }
 
     _sendSimpleMessage({ text }) {
@@ -172,6 +173,23 @@ export function withChatkitOneToOne(WrappedComponent) {
     _sendTypingEvent() {
       return this.context.chatkit.currentUser.isTypingIn({
         roomId: this._roomId,
+      })
+    }
+
+    _setReadCursor() {
+      if (this.state.messages.length === 0) {
+        return
+      }
+
+      const lastMessage = this.state.messages[this.state.messages.length - 1]
+      if (lastMessage.id === this._currentUserLastReadMessageId) {
+        return
+      }
+      this._currentUserLastReadMessageId = lastMessage.id
+
+      return this.context.chatkit.currentUser.setReadCursor({
+        roomId: this._roomId,
+        position: lastMessage.id,
       })
     }
 
@@ -278,6 +296,7 @@ export function withChatkitOneToOne(WrappedComponent) {
             sendMultipartMessage: options =>
               this._sendMultipartMessage(options),
             sendTypingEvent: options => this._sendTypingEvent(options),
+            setReadCursor: options => this._setReadCursor(options),
           }}
           {...forwardedProps}
         />

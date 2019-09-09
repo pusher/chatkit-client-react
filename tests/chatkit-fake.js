@@ -266,6 +266,20 @@ export class CurrentUser {
     }
   }
 
+  setReadCursor({ roomId, position }) {
+    try {
+      return Promise.resolve(
+        fakeAPI.setCursor({
+          roomId,
+          userId: this.id,
+          position,
+        }),
+      )
+    } catch (e) {
+      return Promise.reject(e)
+    }
+  }
+
   isTypingIn({ roomId }) {
     try {
       return Promise.resolve(
