@@ -3,7 +3,7 @@ import PropTypes from "prop-types"
 import React from "react"
 import TestRenderer from "react-test-renderer"
 
-import core from "../src/core"
+import core from "../src"
 import ChatkitFake from "./chatkit-fake"
 import testHelpers from "./helpers"
 

@@ -2,7 +2,7 @@ import PropTypes from "prop-types"
 import React from "react"
 import TestRenderer from "react-test-renderer"
 
-import core from "../src/core"
+import core from "../src"
 
 class TestComponent extends React.Component {
   constructor() {
