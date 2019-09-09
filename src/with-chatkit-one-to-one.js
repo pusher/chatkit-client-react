@@ -20,7 +20,13 @@ import utils from "./utils"
  *    props.chatkit.chatManager // Reference to the ChatManager object
  *
  *    // One-to-one chat data
- *    TODO
+ *    props.chatkit.otherUser // Reference to a Chatkit.User object for the other user in the chat
+ *    props.chatkit.messages // An array of all the messages in the room
+ *    props.chatkit.isLoading // True when the room is fully loaded, false otherwise
+ *    props.chatkit.sendSimpleMessage // Method which sends a text-only message to the room
+ *    props.chatkit.sendMultipartMessage // Method which sends a multi-part Chatkit message to the room
+ *    props.chatkit.sendTypingEvent // Method which triggers a typing event for the current user in the current room
+ *    props.chatkit.setReadCursor // Method which sets the current user's read cursor to the latest message
  * }
  *
  * export default withChatkitOneToOne(MyChatComponent);
