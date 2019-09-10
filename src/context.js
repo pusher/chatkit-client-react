@@ -5,5 +5,3 @@ import React from "react"
  *  JavaScript SDK throughout your application.
  */
 export const ChatkitContext = React.createContext()
-
-export default { ChatkitContext }

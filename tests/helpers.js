@@ -2,7 +2,7 @@ import PropTypes from "prop-types"
 import React from "react"
 import TestRenderer from "react-test-renderer"
 
-import core from "../src"
+import { ChatkitProvider } from "../src"
 
 class TestComponent extends React.Component {
   constructor() {
@@ -28,7 +28,7 @@ TestComponent.propTypes = {
   chatkit: PropTypes.object,
 }
 
-const runInTestRenderer = ({
+export const runInTestRenderer = ({
   instanceLocator,
   tokenProvider,
   userId,
@@ -43,7 +43,7 @@ const runInTestRenderer = ({
 
   return new Promise(resolve => {
     const page = (
-      <core.ChatkitProvider
+      <ChatkitProvider
         instanceLocator={instanceLocator}
         tokenProvider={tokenProvider}
         userId={userId}
@@ -61,12 +61,8 @@ const runInTestRenderer = ({
             }
           }}
         />
-      </core.ChatkitProvider>
+      </ChatkitProvider>
     )
     TestRenderer.create(page)
   })
-}
-
-export default {
-  runInTestRenderer,
 }

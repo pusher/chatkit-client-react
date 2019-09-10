@@ -3,15 +3,18 @@ import PropTypes from "prop-types"
 import React from "react"
 import TestRenderer from "react-test-renderer"
 
-import core from "../src"
-import ChatkitFake from "./chatkit-fake"
-import testHelpers from "./helpers"
+import { ChatkitProvider, withChatkit } from "../src"
+import {
+  ChatManager as FakeChatManager,
+  CurrentUser as FakeCurrentUser,
+} from "./chatkit-fake"
+import { runInTestRenderer as helperRunInTestRenderer } from "./helpers"
 
 jest.mock("@pusher/chatkit-client")
 
 describe("withChatkit higher-order-component", () => {
-  Chatkit.ChatManager = ChatkitFake.ChatManager
-  Chatkit.CurrentUser = ChatkitFake.CurrentUser
+  Chatkit.ChatManager = FakeChatManager
+  Chatkit.CurrentUser = FakeCurrentUser
 
   const instanceLocator = "v1:test:f83ad143-342f-4085-9639-9a809dc96466"
   const tokenProvider = new Chatkit.TokenProvider({
@@ -20,11 +23,11 @@ describe("withChatkit higher-order-component", () => {
   const userId = "alice"
 
   const runInTestRenderer = ({ resolveWhen, onLoad }) =>
-    testHelpers.runInTestRenderer({
+    helperRunInTestRenderer({
       instanceLocator,
       tokenProvider,
       userId,
-      higherOrderComponent: core.withChatkit,
+      higherOrderComponent: withChatkit,
       resolveWhen,
       onLoad,
     })
@@ -68,7 +71,7 @@ describe("withChatkit higher-order-component", () => {
         return null
       }
     }
-    const WrappedComponent = core.withChatkit(SomeComponent)
+    const WrappedComponent = withChatkit(SomeComponent)
     expect(WrappedComponent.displayName).toBe("WithChatkit(SomeComponent)")
   })
 
@@ -79,16 +82,16 @@ describe("withChatkit higher-order-component", () => {
     TestComponentWithProps.propTypes = {
       text: PropTypes.string,
     }
-    const WrappedComponent = core.withChatkit(TestComponentWithProps)
+    const WrappedComponent = withChatkit(TestComponentWithProps)
 
     const page = (
-      <core.ChatkitProvider
+      <ChatkitProvider
         instanceLocator={instanceLocator}
         tokenProvider={tokenProvider}
         userId={userId}
       >
         <WrappedComponent text={"some_value"} />
-      </core.ChatkitProvider>
+      </ChatkitProvider>
     )
 
     const renderer = TestRenderer.create(page)

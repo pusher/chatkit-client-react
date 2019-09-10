@@ -1,7 +1,7 @@
 import React from "react"
 
 import { ChatkitContext } from "./context"
-import utils from "./utils"
+import { getDisplayName } from "./utils"
 
 /**
  * Wraps the given component and injects a Chatkit JavaScript SDK instance under
@@ -19,8 +19,6 @@ import utils from "./utils"
  *    props.chatkit.currentUser // Reference to the CurrentUser object
  *    props.chatkit.chatManager // Reference to the ChatManager object
  * }
- *
- * export default withChatkitOneToOne(MyChatComponent);
  */
 export function withChatkit(WrappedComponent) {
   class WithChatkit extends React.Component {
@@ -29,10 +27,6 @@ export function withChatkit(WrappedComponent) {
     }
   }
   WithChatkit.contextType = ChatkitContext
-  WithChatkit.displayName = `WithChatkit(${utils.getDisplayName(
-    WrappedComponent,
-  )})`
+  WithChatkit.displayName = `WithChatkit(${getDisplayName(WrappedComponent)})`
   return WithChatkit
 }
-
-export default { withChatkit }

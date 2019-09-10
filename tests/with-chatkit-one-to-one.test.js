@@ -3,23 +3,30 @@ import PropTypes from "prop-types"
 import React from "react"
 import TestRenderer from "react-test-renderer"
 
-import core from "../src"
-import ChatkitFake from "./chatkit-fake"
-import testHelpers from "./helpers"
+import { withChatkitOneToOne, ChatkitProvider } from "../src"
+import {
+  fakeAPI,
+  makeOneToOneRoomId,
+  User as FakeUser,
+  Room as FakeRoom,
+  ChatManager as FakeChatManager,
+  CurrentUser as FakeCurrentUser,
+} from "./chatkit-fake"
+import { runInTestRenderer as helperRunInTestRenderer } from "./helpers"
 
 jest.mock("@pusher/chatkit-client")
 
 beforeEach(() => {
-  ChatkitFake.fakeAPI.reset()
-  ChatkitFake.fakeAPI.createUser({ id: "alice" })
-  ChatkitFake.fakeAPI.createUser({ id: "bob" })
+  fakeAPI.reset()
+  fakeAPI.createUser({ id: "alice" })
+  fakeAPI.createUser({ id: "bob" })
 })
 
 describe("withChatkitOneToOne higher-order-component", () => {
-  Chatkit.ChatManager = ChatkitFake.ChatManager
-  Chatkit.CurrentUser = ChatkitFake.CurrentUser
-  Chatkit.User = ChatkitFake.User
-  Chatkit.Room = ChatkitFake.Room
+  Chatkit.ChatManager = FakeChatManager
+  Chatkit.CurrentUser = FakeCurrentUser
+  Chatkit.User = FakeUser
+  Chatkit.Room = FakeRoom
 
   const instanceLocator = "v1:test:f83ad143-342f-4085-9639-9a809dc96466"
   const tokenProvider = new Chatkit.TokenProvider({
@@ -27,14 +34,14 @@ describe("withChatkitOneToOne higher-order-component", () => {
   })
   const userId = "alice"
   const otherUserId = "bob"
-  const roomId = ChatkitFake.makeOneToOneRoomId(userId, otherUserId)
+  const roomId = makeOneToOneRoomId(userId, otherUserId)
 
   const runInTestRenderer = ({ resolveWhen, onLoad }) =>
-    testHelpers.runInTestRenderer({
+    helperRunInTestRenderer({
       instanceLocator,
       tokenProvider,
       userId,
-      higherOrderComponent: core.withChatkitOneToOne,
+      higherOrderComponent: withChatkitOneToOne,
       resolveWhen,
       onLoad,
       wrappedComponentProps: {
@@ -83,7 +90,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
         return null
       }
     }
-    const WrappedComponent = core.withChatkitOneToOne(SomeComponent)
+    const WrappedComponent = withChatkitOneToOne(SomeComponent)
     expect(WrappedComponent.displayName).toBe(
       "WithChatkitOneToOne(SomeComponent)",
     )
@@ -96,16 +103,16 @@ describe("withChatkitOneToOne higher-order-component", () => {
     TestComponentWithProps.propTypes = {
       text: PropTypes.string,
     }
-    const WrappedComponent = core.withChatkitOneToOne(TestComponentWithProps)
+    const WrappedComponent = withChatkitOneToOne(TestComponentWithProps)
 
     const page = (
-      <core.ChatkitProvider
+      <ChatkitProvider
         instanceLocator={instanceLocator}
         tokenProvider={tokenProvider}
         userId={userId}
       >
         <WrappedComponent text={"some_value"} otherUserId={otherUserId} />
-      </core.ChatkitProvider>
+      </ChatkitProvider>
     )
 
     const renderer = TestRenderer.create(page)
@@ -150,7 +157,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
     ]
     return runInTestRenderer({
       onLoad: () => {
-        ChatkitFake.fakeAPI.createMessage({
+        fakeAPI.createMessage({
           roomId,
           senderId: otherUserId,
           parts: messageParts,
@@ -173,8 +180,8 @@ describe("withChatkitOneToOne higher-order-component", () => {
       },
       resolveWhen: props => props.chatkit.messages.length > 0,
     }).then(() => {
-      const room = ChatkitFake.fakeAPI.getRoom({
-        id: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
+      const room = fakeAPI.getRoom({
+        id: makeOneToOneRoomId(userId, otherUserId),
       })
       expect(room.messages).toHaveLength(1)
       const message = room.messages[0]
@@ -201,8 +208,8 @@ describe("withChatkitOneToOne higher-order-component", () => {
       },
       resolveWhen: props => props.chatkit.messages.length > 0,
     }).then(() => {
-      const room = ChatkitFake.fakeAPI.getRoom({
-        id: ChatkitFake.makeOneToOneRoomId(userId, otherUserId),
+      const room = fakeAPI.getRoom({
+        id: makeOneToOneRoomId(userId, otherUserId),
       })
       expect(room.messages).toHaveLength(1)
       const message = room.messages[0]
@@ -225,7 +232,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
       .then(() =>
         runInTestRenderer({
           onLoad: () => {
-            ChatkitFake.fakeAPI.sendTypingEvent({ roomId, userId: otherUserId })
+            fakeAPI.sendTypingEvent({ roomId, userId: otherUserId })
           },
           resolveWhen: props =>
             !props.chatkit.isLoading &&
@@ -261,21 +268,21 @@ describe("withChatkitOneToOne higher-order-component", () => {
         chatkit: PropTypes.object,
       }
 
-      const WrappedComponent = core.withChatkitOneToOne(TestComponent)
+      const WrappedComponent = withChatkitOneToOne(TestComponent)
 
       const page = (
-        <core.ChatkitProvider
+        <ChatkitProvider
           instanceLocator={instanceLocator}
           tokenProvider={tokenProvider}
           userId={userId}
         >
           <WrappedComponent otherUserId={otherUserId} />
-        </core.ChatkitProvider>
+        </ChatkitProvider>
       )
 
       TestRenderer.create(page)
     }).then(() => {
-      const typingEvents = ChatkitFake.fakeAPI.typingEvents
+      const typingEvents = fakeAPI.typingEvents
       expect(typingEvents).toHaveLength(1)
       expect(typingEvents[0].userId).toEqual(userId)
       expect(typingEvents[0].roomId).toEqual(roomId)
@@ -285,7 +292,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
   it("should trigger a render when there is an incoming presence change", () => {
     return runInTestRenderer({
       onLoad: () => {
-        ChatkitFake.fakeAPI.sendPresenceEvent({
+        fakeAPI.sendPresenceEvent({
           userId: otherUserId,
           newState: "online",
         })
@@ -303,11 +310,11 @@ describe("withChatkitOneToOne higher-order-component", () => {
 
   it("should set otherUser.lastReadMessageId to the initial value on load", () => {
     const lastReadMessageId = 42
-    ChatkitFake.fakeAPI.createRoom({
+    fakeAPI.createRoom({
       id: roomId,
       userIds: [userId, otherUserId],
     })
-    ChatkitFake.fakeAPI.setCursor({
+    fakeAPI.setCursor({
       userId: otherUserId,
       roomId,
       position: lastReadMessageId,
@@ -327,7 +334,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
 
     return runInTestRenderer({
       onLoad: () => {
-        ChatkitFake.fakeAPI.setCursor({
+        fakeAPI.setCursor({
           userId: otherUserId,
           roomId,
           position: lastReadMessageId,
@@ -363,7 +370,7 @@ describe("withChatkitOneToOne higher-order-component", () => {
           }
 
           if (!this._hasSentMessage) {
-            const message = ChatkitFake.fakeAPI.createMessage({
+            const message = fakeAPI.createMessage({
               roomId,
               senderId: otherUserId,
               parts: [
@@ -395,21 +402,21 @@ describe("withChatkitOneToOne higher-order-component", () => {
         chatkit: PropTypes.object,
       }
 
-      const WrappedComponent = core.withChatkitOneToOne(TestComponent)
+      const WrappedComponent = withChatkitOneToOne(TestComponent)
 
       const page = (
-        <core.ChatkitProvider
+        <ChatkitProvider
           instanceLocator={instanceLocator}
           tokenProvider={tokenProvider}
           userId={userId}
         >
           <WrappedComponent otherUserId={otherUserId} />
-        </core.ChatkitProvider>
+        </ChatkitProvider>
       )
 
       TestRenderer.create(page)
     }).then(() => {
-      const cursor = ChatkitFake.fakeAPI.getCursor({
+      const cursor = fakeAPI.getCursor({
         roomId,
         userId,
       })

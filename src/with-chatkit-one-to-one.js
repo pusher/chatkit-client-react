@@ -2,7 +2,7 @@ import PropTypes from "prop-types"
 import React from "react"
 
 import { ChatkitContext } from "./context"
-import utils from "./utils"
+import { getDisplayName, makeOneToOneRoomId } from "./utils"
 
 /**
  * Wraps the given component and injects everything needed to create
@@ -28,8 +28,6 @@ import utils from "./utils"
  *    props.chatkit.sendTypingEvent // Method which triggers a typing event for the current user in the current room
  *    props.chatkit.setReadCursor // Method which sets the current user's read cursor to the latest message
  * }
- *
- * export default withChatkitOneToOne(MyChatComponent);
  */
 export function withChatkitOneToOne(WrappedComponent) {
   class WithChatkitOneToOne extends React.Component {
@@ -89,7 +87,7 @@ export function withChatkitOneToOne(WrappedComponent) {
     componentDidMount() {
       this.context.addOnLoadListener(() => {
         this._currentUserId = this.context.chatkit.currentUser.id
-        this._roomId = utils.makeOneToOneRoomId(
+        this._roomId = makeOneToOneRoomId(
           this._currentUserId,
           this._otherUserId,
         )
@@ -197,7 +195,7 @@ export function withChatkitOneToOne(WrappedComponent) {
     }
   }
   WithChatkitOneToOne.contextType = ChatkitContext
-  WithChatkitOneToOne.displayName = `WithChatkitOneToOne(${utils.getDisplayName(
+  WithChatkitOneToOne.displayName = `WithChatkitOneToOne(${getDisplayName(
     WrappedComponent,
   )})`
   WithChatkitOneToOne.propTypes = {
@@ -206,5 +204,3 @@ export function withChatkitOneToOne(WrappedComponent) {
 
   return WithChatkitOneToOne
 }
-
-export default { withChatkitOneToOne }

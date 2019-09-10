@@ -82,5 +82,3 @@ ChatkitProvider.propTypes = {
   userId: PropTypes.string.isRequired,
   children: PropTypes.any.isRequired,
 }
-
-export default { ChatkitProvider }

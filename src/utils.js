@@ -1,8 +1,8 @@
-const getDisplayName = WrappedComponent => {
+export const getDisplayName = WrappedComponent => {
   return WrappedComponent.displayName || WrappedComponent.name || "Component"
 }
 
-const makeOneToOneRoomId = (idA, idB) => {
+export const makeOneToOneRoomId = (idA, idB) => {
   if (idB > idA) {
     const temp = idA
     idA = idB
@@ -10,5 +10,3 @@ const makeOneToOneRoomId = (idA, idB) => {
   }
   return `${btoa(idA)}-${btoa(idB)}`
 }
-
-export default { getDisplayName, makeOneToOneRoomId }

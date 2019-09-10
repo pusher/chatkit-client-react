@@ -368,13 +368,3 @@ export class Message {
     this.parts = parts
   }
 }
-
-export default {
-  fakeAPI,
-  ChatManager,
-  CurrentUser,
-  Message,
-  Room,
-  User,
-  makeOneToOneRoomId,
-}
