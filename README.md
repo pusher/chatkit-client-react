@@ -38,7 +38,7 @@ Head over to [our documentation](https://docs.pusher.com/chatkit/reference/react
 Lint, build, and run the tests with
 
 ```sh
-yarn lint:build:test
+yarn lint:test:build
 ```
 
 Formatting should largely be delegated to prettier, which can be invoked manually with
