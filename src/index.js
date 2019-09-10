@@ -1,9 +1,3 @@
-import { ChatkitProvider } from "./provider"
-import { withChatkit } from "./with-chatkit"
-import { withChatkitOneToOne } from "./with-chatkit-one-to-one"
-
-export default {
-  ChatkitProvider,
-  withChatkit,
-  withChatkitOneToOne,
-}
+export { ChatkitProvider } from "./provider"
+export { withChatkit } from "./with-chatkit"
+export { withChatkitOneToOne } from "./with-chatkit-one-to-one"

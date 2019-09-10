@@ -2,7 +2,7 @@
   "name": "@pusher/chatkit-client-react",
   "version": "0.1.0",
   "description": "React SDK for Pusher Chatkit",
-  "main": "dist/core.js",
+  "main": "dist/index.js",
   "repository": "git@github.com:pusher/chatkit-client-react.git",
   "author": "support@pusher.com",
   "license": "MIT",
