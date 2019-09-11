@@ -33,6 +33,9 @@ export function withChatkitOneToOne(WrappedComponent) {
   class WithChatkitOneToOne extends React.Component {
     constructor(props) {
       super(props)
+      if (!props.otherUserId) {
+        throw new Error("otherUserId prop is required")
+      }
       this.state = {
         otherUser: null,
         otherUserIsTyping: false,
