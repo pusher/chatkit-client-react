@@ -44,6 +44,7 @@ export class ChatkitProvider extends React.Component {
       instanceLocator: this.props.instanceLocator,
       tokenProvider: this.props.tokenProvider,
       userId: this.props.userId,
+      sdkLanguage: "chatkit-client-react",
     })
 
     chatManager

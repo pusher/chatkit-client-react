@@ -1,6 +1,6 @@
 {
   "name": "@pusher/chatkit-client-react",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "React SDK for Pusher Chatkit",
   "main": "dist/index.js",
   "repository": "git@github.com:pusher/chatkit-client-react.git",
@@ -54,10 +54,11 @@
     "eslint-plugin-react": "^7.14.3",
     "jest": "^24.9.0",
     "prettier": "^1.18.2",
+    "publish-please": "^5.5.1",
     "react-test-renderer": "^16.9.0"
   },
   "dependencies": {
-    "@pusher/chatkit-client": "^1.12.1",
+    "@pusher/chatkit-client": "^1.13.0",
     "prop-types": "^15.7.2",
     "react": "^16.9.0"
   }
