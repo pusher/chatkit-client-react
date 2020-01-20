@@ -206,6 +206,7 @@ export function withChatkitOneToOne(WrappedComponent) {
   )})`
   WithChatkitOneToOne.propTypes = {
     otherUserId: PropTypes.string.isRequired,
+    messageLimit: PropTypes.number,
   }
 
   return WithChatkitOneToOne
