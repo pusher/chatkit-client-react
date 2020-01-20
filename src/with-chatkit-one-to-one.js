@@ -46,6 +46,8 @@ export function withChatkitOneToOne(WrappedComponent) {
       this._currentUserId = null
       this._otherUserId = props.otherUserId
 
+      this._messageLimitOnLoad = props.messageLimit
+
       this._roomId = null
       this._currentUserLastReadMessageId = null
     }
@@ -112,6 +114,7 @@ export function withChatkitOneToOne(WrappedComponent) {
           .then(() =>
             this.context.chatkit.currentUser.subscribeToRoomMultipart({
               roomId: this._roomId,
+              messageLimit: this._messageLimitOnLoad,
               hooks: {
                 onMessage: message =>
                   this.setState(state => ({
@@ -203,6 +206,7 @@ export function withChatkitOneToOne(WrappedComponent) {
   )})`
   WithChatkitOneToOne.propTypes = {
     otherUserId: PropTypes.string.isRequired,
+    messageLimit: PropTypes.number,
   }
 
   return WithChatkitOneToOne
