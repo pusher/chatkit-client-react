@@ -89,85 +89,97 @@ export function withChatkitOneToOne(WrappedComponent) {
       })
     }
 
+    _connectToRoom() {
+      this._currentUserId = this.context.chatkit.currentUser.id
+      this._roomId = makeOneToOneRoomId(this._currentUserId, this._otherUserId)
+
+      const alreadyInRoom = this.context.chatkit.currentUser.rooms.some(
+        r => r.id === this._roomId,
+      )
+
+      ;(alreadyInRoom
+        ? Promise.resolve()
+        : this.context.chatkit.currentUser.serverInstanceV6.request({
+            method: "post",
+            path: "/one_to_one_rooms",
+            json: {
+              user_id: this._otherUserId,
+            },
+          })
+      )
+        .then(() =>
+          this.context.chatkit.currentUser.subscribeToRoomMultipart({
+            roomId: this._roomId,
+            messageLimit: this._messageLimitOnLoad,
+            hooks: {
+              onMessage: message =>
+                this.setState(state => ({
+                  messages: [...state.messages, message],
+                })),
+
+              onPresenceChanged: (state, user) => {
+                if (user.id === this.props.otherUserId) {
+                  this.forceUpdate()
+                }
+              },
+
+              onUserStartedTyping: user => {
+                if (user.id === this._otherUserId) {
+                  this.setState({ otherUserIsTyping: true })
+                }
+              },
+
+              onUserStoppedTyping: user => {
+                if (user.id === this._otherUserId) {
+                  this.setState({ otherUserIsTyping: false })
+                }
+              },
+
+              onNewReadCursor: cursor => {
+                const cursorBelongsToOtherUser =
+                  cursor.user.id === this._otherUserId
+                if (cursorBelongsToOtherUser) {
+                  this.setState({
+                    otherUserLastReadMessageId: cursor.position,
+                  })
+                }
+              },
+            },
+          }),
+        )
+        .then(room =>
+          this.setState({
+            otherUser: room.users.find(u => u.id === this._otherUserId),
+            otherUserLastReadMessageId: this.context.chatkit.currentUser.readCursor(
+              {
+                userId: this._otherUserId,
+                roomId: this._roomId,
+              },
+            ),
+            isLoading: false,
+          }),
+        )
+        .catch(err => console.error(err))
+    }
+
+    _disconnectFromRoom() {
+      this.context.chatkit.currentUser.roomSubscriptions[this._roomId].cancel()
+    }
+
     componentDidMount() {
-      this.context.addOnLoadListener(() => {
-        this._currentUserId = this.context.chatkit.currentUser.id
-        this._roomId = makeOneToOneRoomId(
-          this._currentUserId,
-          this._otherUserId,
-        )
-
-        const alreadyInRoom = this.context.chatkit.currentUser.rooms.some(
-          r => r.id === this._roomId,
-        )
-
-        ;(alreadyInRoom
-          ? Promise.resolve()
-          : this.context.chatkit.currentUser.serverInstanceV6.request({
-              method: "post",
-              path: "/one_to_one_rooms",
-              json: {
-                user_id: this._otherUserId,
-              },
-            })
-        )
-          .then(() =>
-            this.context.chatkit.currentUser.subscribeToRoomMultipart({
-              roomId: this._roomId,
-              messageLimit: this._messageLimitOnLoad,
-              hooks: {
-                onMessage: message =>
-                  this.setState(state => ({
-                    messages: [...state.messages, message],
-                  })),
-
-                onPresenceChanged: (state, user) => {
-                  if (user.id === this.props.otherUserId) {
-                    this.forceUpdate()
-                  }
-                },
-
-                onUserStartedTyping: user => {
-                  if (user.id === this._otherUserId) {
-                    this.setState({ otherUserIsTyping: true })
-                  }
-                },
-
-                onUserStoppedTyping: user => {
-                  if (user.id === this._otherUserId) {
-                    this.setState({ otherUserIsTyping: false })
-                  }
-                },
-
-                onNewReadCursor: cursor => {
-                  const cursorBelongsToOtherUser =
-                    cursor.user.id === this._otherUserId
-                  if (cursorBelongsToOtherUser) {
-                    this.setState({
-                      otherUserLastReadMessageId: cursor.position,
-                    })
-                  }
-                },
-              },
-            }),
-          )
-          .then(room =>
-            this.setState({
-              otherUser: room.users.find(u => u.id === this._otherUserId),
-              otherUserLastReadMessageId: this.context.chatkit.currentUser.readCursor(
-                {
-                  userId: this._otherUserId,
-                  roomId: this._roomId,
-                },
-              ),
-              isLoading: false,
-            }),
-          )
-          .catch(err => console.error(err))
-      })
+      this.context.addOnLoadListener(() => this._connectToRoom())
     }
 
     render() {
+      if (!this.context.chatkit.isLoading) {
+        // If the otherUserId prop has changed, connect to a new one-to-one room
+        if (this.props.otherUserId != this._otherUserId) {
+          this._disconnectFromRoom()
+          this._otherUserId = this.props.otherUserId
+          this._connectToRoom()
+        }
+      }
+
       // NOTE: At some point, if customers find them useful, we may want to
       // add these properties to the JS SDK itself. We are adding them here
       // for now as a cheap way to experiment.
