@@ -173,7 +173,7 @@ export function withChatkitOneToOne(WrappedComponent) {
     render() {
       if (!this.context.chatkit.isLoading) {
         // If the otherUserId prop has changed, connect to a new one-to-one room
-        if (this.props.otherUserId != this._otherUserId) {
+        if (this.props.otherUserId !== this._otherUserId) {
           this._disconnectFromRoom()
           this._otherUserId = this.props.otherUserId
           this._connectToRoom()
