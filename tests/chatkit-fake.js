@@ -197,6 +197,20 @@ export class ChatManager {
   }
 }
 
+export class RoomSubscription {
+  constructor() {
+    this._isConnected = false
+  }
+
+  connect() {
+    this._isConnected = true
+  }
+
+  cancel() {
+    this._isConnected = false
+  }
+}
+
 export class CurrentUser {
   constructor({ id }) {
     fakeAPI.currentUser = this
@@ -204,6 +218,7 @@ export class CurrentUser {
     this.hooks = {
       rooms: {},
     }
+    this.roomSubscriptions = {}
     this.serverInstanceV6 = {
       request: ({ method, path, json: { user_id: otherUserId } }) => {
         if (method !== "post" || path != "/one_to_one_rooms") {
@@ -226,6 +241,11 @@ export class CurrentUser {
       return Promise.reject(new Error("couldn't get room from fake API"))
     }
     this.hooks.rooms[options.roomId] = options.hooks
+
+    const sub = new RoomSubscription()
+    sub.connect()
+    this.roomSubscriptions[options.roomId] = sub
+
     return Promise.resolve(room)
   }
 

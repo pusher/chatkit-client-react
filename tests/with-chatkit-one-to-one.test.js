@@ -20,6 +20,7 @@ beforeEach(() => {
   fakeAPI.reset()
   fakeAPI.createUser({ id: "alice" })
   fakeAPI.createUser({ id: "bob" })
+  fakeAPI.createUser({ id: "charlie" })
 })
 
 describe("withChatkitOneToOne higher-order-component", () => {
@@ -422,6 +423,77 @@ describe("withChatkitOneToOne higher-order-component", () => {
       })
       expect(messageId).not.toEqual(null)
       expect(cursor).toEqual(messageId)
+    })
+  })
+
+  it("should load the correct room when otherUserId changes", () => {
+    return new Promise((resolve, reject) => {
+      class TestComponent extends React.Component {
+        constructor() {
+          super()
+          this._otherUserIdsSeen = new Set()
+        }
+
+        render() {
+          if (this.props.chatkit.isLoading) {
+            return null
+          }
+          this._otherUserIdsSeen.add(this.props.chatkit.otherUser.id)
+          if (this._otherUserIdsSeen.size == 2) {
+            if (!this._otherUserIdsSeen.has("bob")) {
+              reject(
+                new Error(
+                  "Exoected other user to have contained bob, but it didn't",
+                ),
+              )
+            }
+            if (!this._otherUserIdsSeen.has("charlie")) {
+              reject(
+                new Error(
+                  "Exoected other user to have contained charlie, but it didn't",
+                ),
+              )
+            }
+            resolve()
+          }
+          return null
+        }
+      }
+      TestComponent.propTypes = {
+        chatkit: PropTypes.object,
+      }
+
+      const WrappedComponent = withChatkitOneToOne(TestComponent)
+
+      const firstOtherUserId = "bob"
+      const secondOtherUserId = "charlie"
+
+      class TopLevelComponent extends React.Component {
+        constructor() {
+          super()
+          this.state = {
+            otherUserId: firstOtherUserId,
+          }
+        }
+
+        render() {
+          setTimeout(
+            () => this.setState({ otherUserId: secondOtherUserId }),
+            100,
+          )
+          return (
+            <ChatkitProvider
+              instanceLocator={instanceLocator}
+              tokenProvider={tokenProvider}
+              userId={userId}
+            >
+              <WrappedComponent otherUserId={this.state.otherUserId} />
+            </ChatkitProvider>
+          )
+        }
+      }
+
+      TestRenderer.create(<TopLevelComponent />)
     })
   })
 })
